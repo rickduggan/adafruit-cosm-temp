@@ -5,8 +5,14 @@ import RPi.GPIO as GPIO
 import eeml
  
 GPIO.setmode(GPIO.BCM)
-DEBUG = 1
+GPIO.setwarnings(False)
+DEBUG = 0
+if (DEBUG):
+	DELAY = 1
+else:
+	DELAY = 30
 LOGGER = 1
+ADJUST = 1950.0
  
 # read SPI data from MCP3008 chip, 8 possible adc's (0 thru 7)
 def readadc(adcnum, clockpin, mosipin, misopin, cspin):
@@ -49,37 +55,62 @@ SPICLK = 18
 SPIMISO = 23
 SPIMOSI = 24
 SPICS = 25
+GREEN = 17
+BLUE = 27
+RED = 22
  
 # set up the SPI interface pins
 GPIO.setup(SPIMOSI, GPIO.OUT)
 GPIO.setup(SPIMISO, GPIO.IN)
 GPIO.setup(SPICLK, GPIO.OUT)
 GPIO.setup(SPICS, GPIO.OUT)
+GPIO.setup(GREEN, GPIO.OUT)
+GPIO.setup(BLUE, GPIO.OUT)
+GPIO.setup(RED, GPIO.OUT)
  
 # COSM variables. The API_KEY and FEED are specific to your COSM account and must be changed 
 #API_KEY = '5RNOO3ShYJxYiq2V2sgSRtz3112SAKxFQjNDQmNXc0RScz0g'
 #FEED = 68872
-API_KEY = 'YOUR_API_KEY'
-FEED = YOUR_FEED_ID
+API_KEY = 'NFxCj4g2ByBPqcQ5aUQkziscU4jxFetL0yhtaZpaMBlNhCfN'
+FEED = 845567437 
  
 API_URL = '/v2/feeds/{feednum}.xml' .format(feednum = FEED)
  
 # temperature sensor connected channel 0 of mcp3008
 adcnum = 0
- 
+
+GPIO.output(GREEN, False)
+GPIO.output(BLUE, False)
+GPIO.output(RED, False)
+
 while True:
         # read the analog pin (temperature sensor LM35)
         read_adc0 = readadc(adcnum, SPICLK, SPIMOSI, SPIMISO, SPICS)
+				# invert since NTE7225 temp sensor reads 0 at max temp
+        read_adc0 = 1024 - read_adc0
  
-        # convert analog reading to millivolts = ADC * ( 3300 / 1024 )
-        millivolts = read_adc0 * ( 3300.0 / 1024.0)
+        # convert analog reading to millivolts = ADC * ( 5000.0 / 1024.0 )
+        millivolts = read_adc0 * ( 5000.0 / 1024.0)
  
-        # 10 mv per degree 
-        temp_C = ((millivolts - 100.0) / 10.0) - 40.0
- 
+        # 10 mv per degree & adjust based on NTE7225
+        temp_C = ((millivolts - ADJUST) / 10.0) 
+
         # convert celsius to fahrenheit 
         temp_F = ( temp_C * 9.0 / 5.0 ) + 32
  
+        if (temp_F < 75.0):
+          GPIO.output(GREEN, True)
+          GPIO.output(BLUE, False)
+          GPIO.output(RED, False)
+        if ((temp_F >= 75.0) and (temp_F < 85)):
+          GPIO.output(GREEN, False)
+          GPIO.output(BLUE, True)
+          GPIO.output(RED, False)
+        if (temp_F >= 85.0): 
+          GPIO.output(GREEN, False)
+          GPIO.output(BLUE, False)
+          GPIO.output(RED, True)
+
         # remove decimal point from millivolts
         millivolts = "%d" % millivolts
  
