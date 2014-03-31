@@ -6,11 +6,9 @@ import eeml
  
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
-DEBUG = 0
-if (DEBUG):
-	DELAY = 1
-else:
-	DELAY = 30
+DEBUG = 1
+#DELAY = 1
+DELAY = 30
 LOGGER = 1
 ADJUST = 1950.0
  
@@ -98,11 +96,11 @@ while True:
         # convert celsius to fahrenheit 
         temp_F = ( temp_C * 9.0 / 5.0 ) + 32
  
-        if (temp_F < 75.0):
+        if (temp_F < 80.0):
           GPIO.output(GREEN, True)
           GPIO.output(BLUE, False)
           GPIO.output(RED, False)
-        if ((temp_F >= 75.0) and (temp_F < 85)):
+        if ((temp_F >= 80.0) and (temp_F < 85)):
           GPIO.output(GREEN, False)
           GPIO.output(BLUE, True)
           GPIO.output(RED, False)
