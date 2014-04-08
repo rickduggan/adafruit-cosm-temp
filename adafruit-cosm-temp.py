@@ -11,6 +11,9 @@ DEBUG = 1
 DELAY = 30
 LOGGER = 1
 ADJUST = 1950.0
+COUNT = 0 # to help smooth temp
+# initialize to 77.0 (25.0C) 
+temp_F_smooth = 77.0
  
 # read SPI data from MCP3008 chip, 8 possible adc's (0 thru 7)
 def readadc(adcnum, clockpin, mosipin, misopin, cspin):
@@ -95,6 +98,13 @@ while True:
 
         # convert celsius to fahrenheit 
         temp_F = ( temp_C * 9.0 / 5.0 ) + 32
+
+        # smooth the small fluctuations
+        if (temp_F != temp_F_smooth):
+          COUNT += 1 
+        if (COUNT == 5):
+          COUNT = 0
+          temp_F_smooth = temp_F
  
         if (temp_F < 80.0):
           GPIO.output(GREEN, True)
@@ -112,15 +122,17 @@ while True:
         # remove decimal point from millivolts
         millivolts = "%d" % millivolts
  
-        # show only one decimal place for temprature and voltage readings
+        # show only one decimal place for temperature and voltage readings
         temp_C = "%.1f" % temp_C
         temp_F = "%.1f" % temp_F
+        #temp_F_smooth = "%.1f" % temp_F_smooth
  
         if DEBUG:
                 print("read_adc0:\t", read_adc0)
                 print("millivolts:\t", millivolts)
                 print("temp_C:\t\t", temp_C)
                 print("temp_F:\t\t", temp_F)
+                print("temp_F_smooth:\t\t", temp_F_smooth)
                 print("\n")
  
         if LOGGER:
@@ -132,6 +144,9 @@ while True:
  
                 #send fahrenheit data
                 pac.update([eeml.Data(1, temp_F, unit=eeml.Fahrenheit())])
+ 
+                #send smoothed data
+                pac.update([eeml.Data(2, temp_F_smooth, unit=eeml.Fahrenheit())])
  
                 # send data to cosm
                 pac.put()
