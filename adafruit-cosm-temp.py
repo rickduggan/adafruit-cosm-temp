@@ -9,6 +9,7 @@ GPIO.setwarnings(False)
 DEBUG = 1
 #DELAY = 1
 DELAY = 30
+#LOGGER = 0
 LOGGER = 1
 ADJUST = 1950.0
 COUNT = 0 # to help smooth temp
@@ -103,6 +104,8 @@ while True:
   # smooth the small fluctuations
   if (temp_F != temp_F_smooth):
     COUNT += 1 
+  else:
+		COUNT = 0
   if (COUNT == 5):
     COUNT = 0
     temp_F_smooth = temp_F
@@ -126,7 +129,8 @@ while True:
   # show only one decimal place for temperature and voltage readings
   temp_C = "%.1f" % temp_C
   temp_F = "%.1f" % temp_F
-  temp_F_smooth = "%.1f" % temp_F_smooth
+	# TODO: no idea why I have to cast temp_F_smooth to float below
+  temp_F_smooth = "%.1f" % float(temp_F_smooth)
  
   if DEBUG:
     print("read_adc0:\t", read_adc0)
