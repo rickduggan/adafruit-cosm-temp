@@ -86,71 +86,71 @@ GPIO.output(BLUE, False)
 GPIO.output(RED, False)
 
 while True:
-        # read the analog pin (temperature sensor LM35)
-        read_adc0 = readadc(adcnum, SPICLK, SPIMOSI, SPIMISO, SPICS)
-				# invert since NTE7225 temp sensor reads 0 at max temp
-        read_adc0 = 1024 - read_adc0
+  # read the analog pin (temperature sensor LM35)
+  read_adc0 = readadc(adcnum, SPICLK, SPIMOSI, SPIMISO, SPICS)
+  # invert since NTE7225 temp sensor reads 0 at max temp
+  read_adc0 = 1024 - read_adc0
  
-        # convert analog reading to millivolts = ADC * ( 5000.0 / 1024.0 )
-        millivolts = read_adc0 * ( 5000.0 / 1024.0)
+  # convert analog reading to millivolts = ADC * ( 5000.0 / 1024.0 )
+  millivolts = read_adc0 * ( 5000.0 / 1024.0)
  
-        # 10 mv per degree & adjust based on NTE7225
-        temp_C = ((millivolts - ADJUST) / 10.0) 
+  # 10 mv per degree & adjust based on NTE7225
+  temp_C = ((millivolts - ADJUST) / 10.0) 
 
-        # convert celsius to fahrenheit 
-        temp_F = ( temp_C * 9.0 / 5.0 ) + 32
+  # convert celsius to fahrenheit 
+  temp_F = ( temp_C * 9.0 / 5.0 ) + 32
 
-        # smooth the small fluctuations
-        if (temp_F != temp_F_smooth):
-          COUNT += 1 
-        if (COUNT == 5):
-          COUNT = 0
-          temp_F_smooth = temp_F
+  # smooth the small fluctuations
+  if (temp_F != temp_F_smooth):
+    COUNT += 1 
+  if (COUNT == 5):
+    COUNT = 0
+    temp_F_smooth = temp_F
  
-        if (temp_F < 80.0):
-          GPIO.output(GREEN, True)
-          GPIO.output(BLUE, False)
-          GPIO.output(RED, False)
-        if ((temp_F >= 80.0) and (temp_F < 85)):
-          GPIO.output(GREEN, False)
-          GPIO.output(BLUE, True)
-          GPIO.output(RED, False)
-        if (temp_F >= 85.0): 
-          GPIO.output(GREEN, False)
-          GPIO.output(BLUE, False)
-          GPIO.output(RED, True)
+  if (temp_F < 80.0):
+    GPIO.output(GREEN, True)
+    GPIO.output(BLUE, False)
+    GPIO.output(RED, False)
+  if ((temp_F >= 80.0) and (temp_F < 85)):
+    GPIO.output(GREEN, False)
+    GPIO.output(BLUE, True)
+    GPIO.output(RED, False)
+  if (temp_F >= 85.0): 
+    GPIO.output(GREEN, False)
+    GPIO.output(BLUE, False)
+    GPIO.output(RED, True)
 
-        # remove decimal point from millivolts
-        millivolts = "%d" % millivolts
+  # remove decimal point from millivolts
+  millivolts = "%d" % millivolts
  
-        # show only one decimal place for temperature and voltage readings
-        temp_C = "%.1f" % temp_C
-        temp_F = "%.1f" % temp_F
-        #temp_F_smooth = "%.1f" % temp_F_smooth
+  # show only one decimal place for temperature and voltage readings
+  temp_C = "%.1f" % temp_C
+  temp_F = "%.1f" % temp_F
+  temp_F_smooth = "%.1f" % temp_F_smooth
  
-        if DEBUG:
-          print("read_adc0:\t", read_adc0)
-          print("millivolts:\t", millivolts)
-          print("temp_C:\t\t", temp_C)
-          print("temp_F:\t\t", temp_F)
-          print("temp_F_smooth:\t\t", temp_F_smooth)
-          print("\n")
+  if DEBUG:
+    print("read_adc0:\t", read_adc0)
+    print("millivolts:\t", millivolts)
+    print("temp_C:\t\t", temp_C)
+    print("temp_F:\t\t", temp_F)
+    print("temp_F_smooth:\t\t", temp_F_smooth)
+    print("\n")
  
-        if LOGGER:
-          # open up your cosm feed
-          pac = eeml.Pachube(API_URL, API_KEY)
- 
-          #send celsius data
-          pac.update([eeml.Data(0, temp_C, unit=eeml.Celsius())])
- 
-          #send fahrenheit data
-          pac.update([eeml.Data(1, temp_F, unit=eeml.Fahrenheit())])
- 
-          #send smoothed data
-          pac.update([eeml.Data(2, temp_F_smooth, unit=eeml.Fahrenheit())])
- 
-          # send data to cosm
-          pac.put()
- 
-        # hang out and do nothing for 10 seconds, avoid flooding cosm
-        time.sleep(DELAY)
+  if LOGGER:
+    # open up your cosm feed
+    pac = eeml.Pachube(API_URL, API_KEY)
+
+    #send celsius data
+    pac.update([eeml.Data(0, temp_C, unit=eeml.Celsius())])
+
+    #send fahrenheit data
+    pac.update([eeml.Data(1, temp_F, unit=eeml.Fahrenheit())])
+
+    #send smoothed data
+    pac.update([eeml.Data(2, temp_F_smooth, unit=eeml.Fahrenheit())])
+
+    # send data to cosm
+    pac.put()
+
+  # hang out and do nothing for 10 seconds, avoid flooding cosm
+  time.sleep(DELAY)
