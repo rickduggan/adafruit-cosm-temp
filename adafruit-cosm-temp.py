@@ -13,6 +13,7 @@ DELAY = 30
 LOGGER = 1
 ADJUST = 1950.0
 COUNT = 0 # to help smooth temp
+SMOOTHING_FACTOR = 10
 # initialize to 77.0 (25.0C) 
 temp_F_smooth = 77.0
  
@@ -106,7 +107,7 @@ while True:
     COUNT += 1 
   else:
 		COUNT = 0
-  if (COUNT == 5):
+  if (COUNT >= SMOOTHING_FACTOR):
     COUNT = 0
     temp_F_smooth = temp_F
  
